@@ -18,7 +18,7 @@ namespace
     hostfxr_get_runtime_delegate_fn get_delegate_fptr;
     hostfxr_run_app_fn run_app_fptr;
     hostfxr_close_fn close_fptr;
-
+}
 
 void *get_export(void *h, const char *name)
 {
