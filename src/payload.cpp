@@ -1,6 +1,7 @@
-#include "includes/nethost.h"
-#include "includes/coreclr_delegates.h"
-#include "includes/hostfxr.h"
+#include "../includes/nethost.h"
+#include "../includes/coreclr_delegates.h"
+#include "../includes/hostfxr.h"
+#include "log.h"
 #include <windows.h>
 #include <iostream>
 #include <cstdlib>
@@ -13,36 +14,29 @@ using string_t = std::basic_string<char_t>;
 namespace
 {
     // Globals to hold hostfxr exports
-    hostfxr_initialize_for_dotnet_command_line_fn init_for_cmd_line_fptr;
     hostfxr_initialize_for_runtime_config_fn init_fptr;
     hostfxr_get_runtime_delegate_fn get_delegate_fptr;
-    hostfxr_run_app_fn run_app_fptr;
     hostfxr_close_fn close_fptr;
 }
 
-void *get_export(void *h, const char *name)
+void* get_export(void *h, const char *name)
 {
     FARPROC f = ::GetProcAddress((HMODULE)h, name);
-    return (void *)f;
+    return (void*)f;
 }
 // Use nethost library to get location of hostfxr and get it's exports
 bool load_hostfxr()
 {
     // Preallocate a large buffer for path, so no buiffer overflows YAY!!!
     char_t buffer[MAX_PATH];
-    size_t bufferSize = sizeof(buffer) / sizeof(char_t); // how many characters it can store
-    int rc = get_hostfxr_path(buffer, &bufferSize, nullptr);
+    size_t bufferLen = sizeof(buffer) / sizeof(char_t); // how many characters it can store
+    int rc = get_hostfxr_path(buffer, &bufferLen, nullptr);
 
     if (rc != 0)
     { // error
         return false;
     }
-    char *ansiBuffer = new char[wcslen(buffer) + 1];
-    wcstombs(ansiBuffer, buffer, wcslen(buffer) + 1);
-
-    void *lib = LoadLibraryW(buffer);
-
-    delete[] ansiBuffer;
+    void* lib = LoadLibraryW(buffer);
     // function pointers to function in the dll
     init_fptr = (hostfxr_initialize_for_runtime_config_fn)get_export(lib, "hostfxr_initialize_for_runtime_config");
     get_delegate_fptr = (hostfxr_get_runtime_delegate_fn)get_export(lib, "hostfxr_get_runtime_delegate");
@@ -52,12 +46,12 @@ bool load_hostfxr()
 load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(const char_t *configPath)
 {
     ::load_hostfxr();
-    void *load_assembly_and_get_function_pointer = nullptr;
+    void* load_assembly_and_get_function_pointer = nullptr;
     hostfxr_handle ctx = nullptr;
     int rc = init_fptr(configPath, nullptr, &ctx);
     if (rc == 1)
     {
-        printf("YOO!");
+        std::cout << "Found compatible host" << "\n";
     }
     if (rc != 1 || ctx == nullptr)
     {
@@ -85,6 +79,9 @@ enum InjectErrors
 };
 int inject()
 {
+    const std::string logFp = "payload.log";
+    Logger logger(logFp);
+    logger.LogMessage("Test");
     load_assembly_and_get_function_pointer_fn load_assembly_and_get_function_pointer = nullptr;
     string_t path = STR("./customDotnetHostTutorial.runtimeconfig.json");
     load_assembly_and_get_function_pointer = get_dotnet_load_assembly(path.c_str());
