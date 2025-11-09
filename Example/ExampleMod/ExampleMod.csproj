@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Lib.Harmony" Version="2.4.1"></PackageReference>
+    </ItemGroup>
+    <ItemGroup>
+        <Reference Include="ExampleApp">
+            <HintPath>c:\Users\jalau\dotnetAssemblyInjector\Example\ExampleMod\lib\ExampleApp.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+</Project>
