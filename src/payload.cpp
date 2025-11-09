@@ -2,15 +2,17 @@
 #include "../includes/coreclr_delegates.h"
 #include "../includes/hostfxr.h"
 #include "log.h"
+#include "readConfig.hpp"
 #include <windows.h>
 #include <iostream>
 #include <cstdlib>
 #include <cwchar>
 #include <string.h>
 #include <windows.h>
+#include <format>
+#include <print>
 using string_t = std::basic_string<char_t>;
-#define STR(s) L##s
-
+#define STR(x) std::format("{}", x)
 namespace
 {
     // Globals to hold hostfxr exports
@@ -18,7 +20,9 @@ namespace
     hostfxr_get_runtime_delegate_fn get_delegate_fptr;
     hostfxr_close_fn close_fptr;
 }
-
+std::wstring convertStringToWstring(std::string str){
+    return std::wstring(str.begin(), str.end());
+}
 void* get_export(void *h, const char *name)
 {
     FARPROC f = ::GetProcAddress((HMODULE)h, name);
@@ -37,6 +41,7 @@ bool load_hostfxr()
         return false;
     }
     void* lib = LoadLibraryW(buffer);
+    
     // function pointers to function in the dll
     init_fptr = (hostfxr_initialize_for_runtime_config_fn)get_export(lib, "hostfxr_initialize_for_runtime_config");
     get_delegate_fptr = (hostfxr_get_runtime_delegate_fn)get_export(lib, "hostfxr_get_runtime_delegate");
@@ -79,20 +84,22 @@ enum InjectErrors
 };
 int inject()
 {
+
     const std::string logFp = "payload.log";
     Logger logger(logFp);
-    logger.LogMessage("Test");
+    logger.LogMessage("Beginning Injection");
+    const std::string configPath = "config.cfg"; // TODO: at some point, make this be able to be varied
+    logger.LogMessage(std::format("Loading config {}", configPath));
+    Config_t config = parseConfig(const_cast<char*>(configPath.c_str()));
     load_assembly_and_get_function_pointer_fn load_assembly_and_get_function_pointer = nullptr;
-    string_t path = STR("./customDotnetHostTutorial.runtimeconfig.json");
+    string_t path = convertStringToWstring(config.configPath);
     load_assembly_and_get_function_pointer = get_dotnet_load_assembly(path.c_str());
-    
-    
     typedef void (CORECLR_DELEGATE_CALLTYPE* DoPatchingFn)();
     DoPatchingFn DoPatching;
     int rc = load_assembly_and_get_function_pointer(
-        STR("./HarmonyPatch.dll"),
-        STR("TestPatch.MyPatcher, HarmonyPatch"),
-        STR("DoPatching"),
+        convertStringToWstring(config.patchDllPath).c_str(),
+        convertStringToWstring(std::format("{}, {}", config.patchMethodAssembly, config.patchMethodClass)).c_str(),
+        convertStringToWstring(config.patchMethodName).c_str(),
         // STR("TestPatch.MyPatcher+DoPatchingDelegate, HarmonyPatch") /*delegate_type_name*/,
         UNMANAGEDCALLERSONLY_METHOD,
         nullptr,
@@ -104,24 +111,22 @@ int inject()
     return 0;
 }
 
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD reasonForCall, LPVOID lpReserved)
+BOOL WINAPI DllMain(HMODULE hModule, DWORD reasonForCall, LPVOID lpReserved)
 {
     switch (reasonForCall)
     {
     case DLL_PROCESS_ATTACH:
+        OutputDebugStringA("Test");
+        MessageBoxA((HWND)hModule, "INFO", "Beginning Injection", MB_ICONEXCLAMATION);
+        std::print("HAI!!!");
         inject();
         MessageBoxA((HWND)hModule, "Success", "Successfully Injected the DLL", MB_ICONEXCLAMATION);
         break;
-    case DLL_THREAD_ATTACH:
-        MessageBoxA(NULL, "Tehee attached but THREAD!", "WARNING", MB_ICONEXCLAMATION);
-        break;
-    case DLL_PROCESS_DETACH:
-        MessageBoxA(NULL, "Aw, detached", "WARNING", MB_ICONEXCLAMATION);
-        break;
-    case DLL_THREAD_DETACH:
-        MessageBoxA(NULL, "Aw detached, but THREAD", "WARNING", MB_ICONEXCLAMATION);
-        break;
     default:
+        MessageBoxA((HWND)hModule, "INFO", "Beginning Injection", MB_ICONEXCLAMATION);
+        std::print("HAI!!!");
+        inject();
+        MessageBoxA((HWND)hModule, "Success", "Successfully Injected the DLL", MB_ICONEXCLAMATION);
         break;
     }
     return TRUE;

@@ -1,0 +1,17 @@
+cmake_minimum_required(VERSION 3.30)
+set(CMAKE_CXX_STANDARD 26)
+project(
+    dotnetAssemblyInjector
+    VERSION 0.1
+)
+
+add_executable(${PROJECT_NAME}Tests "test.cpp" "readconfig.cpp" "error.cpp" "log.cpp")
+set(CMAKE_CXX_FLAGS_DEBUG_INIT "-Wall")
+set(CMAKE_BUILD_TYPE Debug)
+
+
+add_library(${PROJECT_NAME} SHARED "log.cpp" "payload.cpp" "error.cpp" "readConfig.cpp")
+list(APPEND CMAKE_PREFIX_PATH "../lib")
+find_library(NETHOST "nethost")
+target_link_libraries(${PROJECT_NAME} "${NETHOST}")
+
