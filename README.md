@@ -1,5 +1,6 @@
 # Warning
-This is mainly just a proof of concept as a runtimeonfig.json is required for injection, therefore this won't work for self-contained apps a.k.a. singlular exes.
+- This is mainly just a proof of concept as a runtimeconfig.json is required for injection, therefore this won't work for self-contained apps a.k.a. singular exes.
+- Only tested on windows!
 # dotnetAssemblyInjector
 A dll to inject managed assemblies into a dotnet application. Made using the [official tutorial](https://learn.microsoft.com/en-us/dotnet/core/tutorials/netcore-hosting) on the dotnet website.
 
