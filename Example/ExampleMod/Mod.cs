@@ -14,7 +14,7 @@ public class Mod
 }
 
 [HarmonyPatch(typeof(Program))]
-[HarmonyPatch(nameof(Program.checkSubscription))] // if possible use nameof() here
+[HarmonyPatch(nameof(Program.checkSubscription))] 
 class Patch01
 {
     static bool Prefix(Program __instance, ref string ___status)
