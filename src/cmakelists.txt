@@ -6,11 +6,11 @@ project(
 )
 
 add_executable(${PROJECT_NAME}Tests "test.cpp" "readconfig.cpp" "error.cpp" "log.cpp")
-set(CMAKE_CXX_FLAGS_DEBUG_INIT "-Wall")
-set(CMAKE_BUILD_TYPE Debug)
 
 
-add_library(${PROJECT_NAME} SHARED "log.cpp" "payload.cpp" "error.cpp" "readConfig.cpp")
+
+
+add_library(${PROJECT_NAME} SHARED "log.cpp" "payload.cpp" "error.cpp" "readConfig.cpp" "util.cpp")
 list(APPEND CMAKE_PREFIX_PATH "../lib")
 find_library(NETHOST "nethost")
 target_link_libraries(${PROJECT_NAME} "${NETHOST}")
