@@ -6,4 +6,6 @@ A dll to inject managed assemblies into a dotnet application. Made using the [of
 ```
 cmake -B build && cmake --build build  
 ```
+Artifacts located in the build directory.
 # Use
+
