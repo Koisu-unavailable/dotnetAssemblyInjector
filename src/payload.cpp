@@ -37,7 +37,7 @@ bool load_hostfxr()
     int rc = get_hostfxr_path(buffer, &bufferLen, nullptr);
 
     if (rc != 0)
-    { // error
+    { 
         return false;
     }
     void *lib = LoadLibraryW(buffer);
@@ -50,17 +50,13 @@ bool load_hostfxr()
 }
 load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(const char_t *configPath)
 {
-    ::load_hostfxr();
+    if(!::load_hostfxr()) handleError("Could not load hostfxr");
     void *load_assembly_and_get_function_pointer = nullptr;
     hostfxr_handle ctx = nullptr;
     int rc = init_fptr(configPath, nullptr, &ctx);
-    if (rc == 1)
-    {
-        std::cout << "Found compatible host" << "\n";
-    }
     if (rc != 1 || ctx == nullptr)
     {
-        std::cout << "Error occured" << "\n";
+        handleError("Catastrophic error occured"); // TODO: Make better
         close_fptr(ctx);
         return nullptr;
     }
@@ -80,7 +76,7 @@ load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(const char_t 
 int inject()
 {
 
-    const std::string logFp = "payload.log";
+    const std::string logFp = "payload.log"; // TODO: add to config
     Logger logger(logFp);
     logger.LogMessage("Beginning Injection");
     const std::string configPath = "config.cfg"; // TODO: at some point, make this be able to be varied
@@ -121,6 +117,7 @@ int inject()
         handleError(std::format("Message: {}", message).c_str());
         return 1;
     }
+    logger.LogMessage(std::format("Calling {}", patchMethodName);
     DoPatching();
     return 0;
 }
